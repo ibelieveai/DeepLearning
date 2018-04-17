@@ -35,3 +35,20 @@ y_prob = rac_model.predict(test_image)
 decode_predictions_v1(y_prob)[0]
 
 
+def decode_predictions_v1(preds, top=4):
+    global CLASS_INDEX
+    if len(preds.shape) != 2 or preds.shape[1] != 4:
+        raise ValueError('`decode_predictions` expects '
+                         'a batch of predictions '
+                         '(i.e. a 2D array of shape (samples, 4)). '
+                         'Found array with shape: ' + str(preds.shape))
+    if CLASS_INDEX is None:
+        CLASS_INDEX = json.load(open(CLASS_INDEX_PATH))
+    results = []
+    for pred in preds:
+        top_indices = preds.argsort()[::-1][0]
+        result = [tuple(CLASS_INDEX[str(i)]) + (pred[i],) for i in top_indices]
+        results.append(result)
+    return results
+
+

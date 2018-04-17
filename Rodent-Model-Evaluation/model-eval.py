@@ -35,6 +35,17 @@ y_prob = rac_model.predict(test_image)
 decode_predictions_v1(y_prob)[0]
 
 
+
+import numpy as np
+import json
+
+from keras.utils.data_utils import get_file
+from keras import backend as K
+
+CLASS_INDEX = None
+CLASS_INDEX_PATH = '/Users/krish/OneDrive/OneDrive-CharlesRiverLaboratories/Learning/deeplearning/Rodent-Model-Evaluation/rbc_custom_class_index.json'
+
+
 def decode_predictions_v1(preds, top=4):
     global CLASS_INDEX
     if len(preds.shape) != 2 or preds.shape[1] != 4:

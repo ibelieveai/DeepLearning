@@ -10,7 +10,6 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications.imagenet_utils import preprocess_input
 import numpy as np
-from keras.applications.imagenet_utils import decode_predictions
 
 rac_model = load_model('custom_vgg_model.h5')
 

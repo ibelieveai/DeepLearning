@@ -19,6 +19,7 @@ import numpy as np
 import os
 import random
 import glob
+import sys
 
 from sklearn.utils import shuffle
 
@@ -66,5 +67,7 @@ for file in s_files:
         cv2.imshow("Classification", frame)
         cv2.waitKey(0)
         frame_number += 1
+        if cv2.waitKey(1)&0xFF == ord('q'):
+            break
 cv2.destroyAllWindows()
 sys.exit()

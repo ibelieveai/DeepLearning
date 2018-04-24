@@ -11,19 +11,26 @@ import sys
 from keras.models import load_model
 import threading
 import time
+from datetime import datetime
 
 label = ''
+inID = ''
+prob = ''
 frame = None
 file = 'video_3.mpg'
 print("[INFO] loading network...")
 custom_model = 'rbc_custom_model.h5'
+behavior_list = []
+
+def currtime():
+    return str(datetime.now())
 
 class MyThread(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
 
 	def run(self):
-		global label
+		global label,inID,prob
 		# Load the VGG16 network
 		print("[INFO] loading network...")
 		self.model = load_model(custom_model)
@@ -55,6 +62,9 @@ while (True):
 	ret, original = cap.read()
 
 	frame = cv2.resize(original, (224, 224))
+	action = (inID, label, prob,currtime())
+	behavior_list.append(action)
+    
 
 	# Display the predictions
 	# print("ImageNet ID: {}, Label: {}".format(inID, label))

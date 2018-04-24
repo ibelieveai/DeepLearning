@@ -1,77 +1,86 @@
 # Trained image classification models for Keras
 
-This repository contains code for the following Keras models:
+This repository contains code for the Rodent behaviors Keras models:
 
-- VGG16
-- VGG19
-- ResNet50
-- Inception v3
+- Transfer learning on VGG16 and with 5 frozen layers
 
-All architectures are compatible with both TensorFlow and Theano, and upon instantiation the models will be built according to the image dimension ordering set in your Keras configuration file at `~/.keras/keras.json`. For instance, if you have set `image_dim_ordering=tf`, then any model loaded from this repository will get built according to the TensorFlow dimension ordering convention, "Width-Height-Depth".
 
-Weights can be automatically loaded upon instantiation (`weights='imagenet'` argument in model constructor). Weights are automatically downloaded if necessary, and cached locally in `~/.keras/models/`.
+All architectures are compatible with both TensorFlow. Custom weights has to be loaded from the repository.
 
 **Note that using these models requires the latest version of Keras (from the Github repo, not PyPI).**
 
 ## Examples
 
-### Classify images
+### Classify videos
 
 ```python
-from resnet50 import ResNet50
-from keras.preprocessing import image
-from imagenet_utils import preprocess_input, decode_predictions
+from keras.preprocessing import image as image_utils
+from keras.applications.imagenet_utils import decode_predictions
+from keras.applications.imagenet_utils import preprocess_input
+from  keras.applications.vgg16 import VGG16
+from keras.models import load_model
+from keras.preprocessing import image 
+import numpy as np
+from helper import decode_predictions_custom, image_preprocess
+import argparse
+import cv2
+import numpy as np
+import os
+import random
+import glob
+import sys
+from sklearn.utils import shuffle
+import time
 
-model = ResNet50(weights='imagenet')
+file = 'video_2.mpg'
 
-img_path = 'elephant.jpg'
-img = image.load_img(img_path, target_size=(224, 224))
-x = image.img_to_array(img)
-x = np.expand_dims(x, axis=0)
-x = preprocess_input(x)
+#loading model
+custom_model = 'rbc_custom_model.h5'
+model = load_model(custom_model)
 
-preds = model.predict(x)
-print('Predicted:', decode_predictions(preds))
-# print: [[u'n02504458', u'African_elephant']]
+cap = cv2.VideoCapture(file)
+time.sleep(2)
+video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  - 1
+
+frames = 1
+while frames < video_length:
+    
+    
+    ret,original = cap.read()
+    # Load the image using Keras helper ultility
+    print("[INFO] loading and preprocessing image...")
+    frame = cv2.resize(original, (224, 224)) 
+    frame = image_utils.img_to_array(frame)
+    frame = np.expand_dims(frame, axis=0)
+    frame = preprocess_input(frame)
+    preds = model.predict(frame)
+    (inID, label, prob) = decode_predictions_custom(preds)[0][0]
+    # Display the predictions
+    print("RBC ID: {}, Label: {}, Prob: {}".format(inID, label, prob))
+    cv2.putText(original, "Label: {}, Prob: {}".format(label, prob), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    cv2.imshow("Classification", original)
+    cv2.waitKey(1)
+    frames += 1
 ```
 
-### Extract features from images
+### Capturing image from video and extract features
 
 ```python
-from vgg16 import VGG16
-from keras.preprocessing import image
-from imagenet_utils import preprocess_input
+cap = cv2.VideoCapture(file)
+while frames < video_length:
+    
+    
+    ret,original = cap.read()
+    # Load the image using Keras helper ultility
+    print("[INFO] loading and preprocessing image...")
+    frame = cv2.resize(original, (224, 224)) 
+    frame = image_utils.img_to_array(frame)
+    frame = np.expand_dims(frame, axis=0)
+    frame = preprocess_input(frame)
 
-model = VGG16(weights='imagenet', include_top=False)
 
-img_path = 'elephant.jpg'
-img = image.load_img(img_path, target_size=(224, 224))
-x = image.img_to_array(img)
-x = np.expand_dims(x, axis=0)
-x = preprocess_input(x)
-
-features = model.predict(x)
 ```
 
-### Extract features from an arbitrary intermediate layer
-
-```python
-from vgg19 import VGG19
-from keras.preprocessing import image
-from imagenet_utils import preprocess_input
-from keras.models import Model
-
-base_model = VGG19(weights='imagenet')
-model = Model(input=base_model.input, output=base_model.get_layer('block4_pool').output)
-
-img_path = 'elephant.jpg'
-img = image.load_img(img_path, target_size=(224, 224))
-x = image.img_to_array(img)
-x = np.expand_dims(x, axis=0)
-x = preprocess_input(x)
-
-block4_pool_features = model.predict(x)
-```
 
 ## References
 

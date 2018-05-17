@@ -30,12 +30,27 @@ def detect(frame, net, transform):
     #detections = [batches, number of classes, number of occurances,tuple of {score,x0,y0,x1,y1}]
     for i in range(detections.size(1)):
         j = 0 #occurance of the class
-        while detection[0,i,j,0]>0.6:#score for occurance j of class i
+        while detections[0,i,j,0]>0.6:#score for occurance j of class i
             pt = (detections[0,i,j,1:] * scale).numpy()
             # imagge, co-ordinates of upper left , co-ordinates of lower right, color of rectangle , thickness of text to display
             cv2.rectangle(frame,(int(pt[0]),int(pt[1])),(int(pt[2]),int(pt[3])),(255,0,0),2) 
             # image, name to print , where to print, font , color, thickness of text, continues text
             cv2.putText(frame,labelmap[i - 1], (int(pt[0]),int(pt[1])), cv2.FONT_HERSHEY_SIMPLEX,2,(255,255,255),2,cv2.LINE_AA)
+            j+=1
+    return frame
+
+#creating ssd neural network
+net = build_ssd('test')
+net.load_state_dict(torch.load('ssd300_mAP_77.43_v2.pth',map_location= lambda storage,loc:storage))
+
+#Transform function
+transform = BaseTransform(net.size,(104/256.0,117/256.0,123/256.0))
+
+reader = imageio.get_reader('funny_dog.mp4')
+fps = reader.get_meta_data()['fps']
+writer  = imageio.get_writer('output.mp4',fps = fps)
+
+
             
             
             
